@@ -52,7 +52,7 @@ void EDMQTT::MQTT::onMessage(char* topic, char* payload, AsyncMqttClientMessageP
 
 void EDMQTT::MQTT::loop()
 {
-    if (_client.connected() || !_networkMgr->isConnected()) {
+    if (_client.connected()) {
         return;
     }
 
