@@ -50,19 +50,6 @@ void EDMQTT::MQTT::onMessage(char* topic, char* payload, AsyncMqttClientMessageP
     }
 }
 
-void EDMQTT::MQTT::loop()
-{
-    if (_client.connected()) {
-        return;
-    }
-
-    if (_lastReconnectTime + 1000 < millis()) {
-        ESP_LOGI("mqtt", "connect...");
-        _client.connect();
-        _lastReconnectTime = millis();
-    }
-}
-
 bool EDMQTT::MQTT::publish(const char* topic, const char* payload, boolean retained)
 {
     if (!isConnected()) {

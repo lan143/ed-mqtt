@@ -19,7 +19,7 @@ namespace EDMQTT
         bool isConnected() { return _client.connected(); }
         bool publish(const char* topic, const char* payload, boolean retained);
         void subscribe(Consumer* consumer);
-        void loop();
+        void connect() { _client.connect(); }
 
         EDHealthCheck::ReadyResult ready()
         {
@@ -33,7 +33,6 @@ namespace EDMQTT
         AsyncMqttClient _client;
         
         Config& _config;
-        uint64_t _lastReconnectTime = 0;
         bool _isConfigured = false;
         std::list<Consumer*> _consumers;
     };
