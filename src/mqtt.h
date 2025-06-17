@@ -20,6 +20,7 @@ namespace EDMQTT
         bool publish(const char* topic, const char* payload, boolean retained);
         void subscribe(Consumer* consumer);
         void connect() { _client.connect(); }
+        void disconnect() { _client.disconnect(); }
 
         EDHealthCheck::ReadyResult ready()
         {
