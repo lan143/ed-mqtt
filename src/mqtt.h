@@ -14,8 +14,7 @@ namespace EDMQTT
 {
     class MQTT : public EDHealthCheck::Ready {
     public:
-        MQTT(Config& config) : _config(config) { }
-        void init();
+        void init(Config config);
         bool isConnected() { return _client.connected(); }
         bool publish(const char* topic, const char* payload, boolean retained);
         void subscribe(Consumer* consumer);
@@ -33,7 +32,7 @@ namespace EDMQTT
     private:
         AsyncMqttClient _client;
         
-        Config& _config;
+        Config _config;
         bool _isConfigured = false;
         std::list<Consumer*> _consumers;
     };

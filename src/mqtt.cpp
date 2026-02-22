@@ -2,9 +2,10 @@
 #include <esp_log.h>
 #include "mqtt.h"
 
-void EDMQTT::MQTT::init()
+void EDMQTT::MQTT::init(Config config)
 {
     ESP_LOGI("mqtt", "init start");
+    _config = config;
 
     if (strlen(_config.host) == 0) {
         ESP_LOGI("mqtt", "host is empty. stop.");

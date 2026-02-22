@@ -1,5 +1,5 @@
 {
-    "name": "ed-ьйее",
+    "name": "ed-mqtt",
     "keywords": "iot, home, automation, esp32",
     "description": "MQTT wrapper for embedded devices",
     "authors":
