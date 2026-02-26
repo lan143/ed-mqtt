@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include <ConfigMgr.h>
 #include <AsyncMqttClient.h>
 #include <ready.h>
 #include <Utils.h>
