@@ -5,6 +5,7 @@
 #include <ready.h>
 #include <Utils.h>
 #include <list>
+#include <log/log.h>
 
 #include "mqtt_config.h"
 #include "consumer.h"
@@ -17,8 +18,16 @@ namespace EDMQTT
         bool isConnected() { return _client.connected(); }
         bool publish(const char* topic, const char* payload, boolean retained);
         void subscribe(Consumer* consumer);
-        void connect() { _client.connect(); }
-        void disconnect() { _client.disconnect(); }
+        void connect()
+        {
+            _client.connect();
+            LOGD("mqtt", "connect");
+        }
+        void disconnect()
+        {
+            _client.disconnect();
+            LOGD("mqtt", "disconnect");
+        }
 
         EDHealthCheck::ReadyResult ready()
         {

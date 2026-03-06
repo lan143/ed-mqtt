@@ -1,14 +1,14 @@
 #include <Arduino.h>
-#include <esp_log.h>
+#include <log/log.h>
 #include "mqtt.h"
 
 void EDMQTT::MQTT::init(Config config)
 {
-    ESP_LOGI("mqtt", "init start");
+    LOGI("mqtt", "init start");
     _config = config;
 
     if (strlen(_config.host) == 0) {
-        ESP_LOGI("mqtt", "host is empty. stop.");
+        LOGI("mqtt", "host is empty. stop.");
 
         return;
     }
@@ -17,14 +17,14 @@ void EDMQTT::MQTT::init(Config config)
         onMessage(topic, payload, properties, len, index, total);
     });
     _client.onConnect([this](bool sessionPresent) {
-        ESP_LOGI("mqtt", "connected");
+        LOGI("mqtt", "connected");
 
         for (auto consumer : _consumers) {
             _client.subscribe(consumer->getTopicName(), 1);
         }
     });
     _client.onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
-        ESP_LOGI("mqtt", "disconnected");
+        LOGI("mqtt", "disconnected");
     });
     _client.setServer(_config.host, _config.port);
 
@@ -54,18 +54,18 @@ void EDMQTT::MQTT::onMessage(char* topic, char* payload, AsyncMqttClientMessageP
 bool EDMQTT::MQTT::publish(const char* topic, const char* payload, boolean retained)
 {
     if (!isConnected()) {
-        ESP_LOGE("mqtt", "can't publish message. mqtt is not connected yet.");
+        LOGE("mqtt", "can't publish message. mqtt is not connected yet.");
         return false;
     }
 
-    ESP_LOGD("mqtt", "publish message, topic: %s, payload: %s", topic, payload);
+    LOGD("mqtt", "publish message, topic: %s, payload: %s", topic, payload);
 
     if (_client.publish(topic, 1, retained, payload)) {
-        ESP_LOGD("mqtt", "publish successful");
+        LOGD("mqtt", "publish successful");
 
         return true;
     } else {
-        ESP_LOGE("mqtt", "publish failed");
+        LOGE("mqtt", "publish failed");
 
         return false;
     }
@@ -73,7 +73,7 @@ bool EDMQTT::MQTT::publish(const char* topic, const char* payload, boolean retai
 
 void EDMQTT::MQTT::subscribe(Consumer* consumer)
 {
-    ESP_LOGD("mqtt", "subscribe, topic: %s", consumer->getTopicName());
+    LOGD("mqtt", "subscribe, topic: %s", consumer->getTopicName());
 
     _consumers.push_back(consumer);
 
