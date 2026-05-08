@@ -36,6 +36,7 @@ namespace EDMQTT
 
     private:
         void onMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
+        void reconnect();
 
     private:
         AsyncMqttClient _client;
@@ -43,5 +44,6 @@ namespace EDMQTT
         Config _config;
         bool _isConfigured = false;
         std::list<Consumer*> _consumers;
+        int64_t _lastReconnectAttempt = 0;
     };
 }

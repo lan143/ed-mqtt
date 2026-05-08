@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <esp_timer.h>
 #include <log/log.h>
 #include "mqtt.h"
 
@@ -24,11 +25,22 @@ void EDMQTT::MQTT::init(Config config)
         }
     });
     _client.onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
-        LOGI("mqtt", "disconnected");
+        LOGI("mqtt", "disconnected, reason: %d", reason);
+        
+        reconnect();
     });
     _client.setServer(_config.host, _config.port);
 
     _isConfigured = true;
+}
+
+void EDMQTT::MQTT::reconnect()
+{
+    if (esp_timer_get_time() - _lastReconnectAttempt > 5000000) {
+        _lastReconnectAttempt = esp_timer_get_time();
+        LOGI("mqtt", "attempt to reconnect");
+        connect();
+    }
 }
 
 void EDMQTT::MQTT::onMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
