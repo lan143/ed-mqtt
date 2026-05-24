@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.h"
+#include "mqtt_config.h"
 
 namespace EDMQTT
 {
