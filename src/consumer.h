@@ -16,6 +16,6 @@ namespace EDMQTT
         const char* getTopicName() { return _topic; }
 
     protected:
-        char _topic[MQTT_TOPIC_LEN] = {0};
+        char _topic[256] = {0};
     };
 }
