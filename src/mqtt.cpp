@@ -58,6 +58,12 @@ void EDMQTT::MQTT::onMessage(char* topic, char* payload, AsyncMqttClientMessageP
 
     for (auto consumer : _consumers) {
         if (strcmp(consumer->getTopicName(), topic) == 0) {
+            if (properties.retain && !consumer->acceptRetained()) {
+                LOGD("mqtt", "skip retained message, topic: %s", topic);
+
+                continue;
+            }
+
             consumer->consume(correctPayload);
         }
     }
