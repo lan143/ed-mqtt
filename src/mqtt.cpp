@@ -14,33 +14,62 @@ void EDMQTT::MQTT::init(Config config)
         return;
     }
 
-    _client.onMessage([this](char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
-        onMessage(topic, payload, properties, len, index, total);
-    });
-    _client.onConnect([this](bool sessionPresent) {
-        LOGI("mqtt", "connected");
+    setupClient(_client);
 
-        for (auto consumer : _consumers) {
-            _client.subscribe(consumer->getTopicName(), 1);
-        }
-    });
-    _client.onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
-        LOGI("mqtt", "disconnected, reason: %d", reason);
-        
-        reconnect();
-    });
-    _client.setServer(_config.host, _config.port);
+    _lastReconnectAttempt = 0;
+    _lastEventUs = esp_timer_get_time();
 
     _isConfigured = true;
 }
 
-void EDMQTT::MQTT::reconnect()
+void EDMQTT::MQTT::setupClient(AsyncMqttClient* c)
 {
-    if (esp_timer_get_time() - _lastReconnectAttempt > 5000000) {
-        _lastReconnectAttempt = esp_timer_get_time();
-        LOGI("mqtt", "attempt to reconnect");
-        connect();
+    c->onMessage([this](char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+        onMessage(topic, payload, properties, len, index, total);
+    });
+    c->onConnect([this, c](bool sessionPresent) {
+        LOGI("mqtt", "connected");
+
+        _lastEventUs = esp_timer_get_time();
+
+        for (auto consumer : _consumers) {
+            c->subscribe(consumer->getTopicName(), 1);
+        }
+    });
+    c->onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
+        LOGI("mqtt", "disconnected, reason: %d", reason);
+
+        _lastEventUs = esp_timer_get_time();
+    });
+    c->setServer(_config.host, _config.port);
+}
+
+void EDMQTT::MQTT::resetClient()
+{
+    LOGI("mqtt", "stuck state suspected, forcing reset");
+    _client->disconnect(true);
+}
+
+void EDMQTT::MQTT::tick()
+{
+    if (!_isConfigured || !_wantConnected || _client == nullptr || _client->connected()) {
+        return;
     }
+
+    int64_t now = esp_timer_get_time();
+
+    if (now - _lastReconnectAttempt < RECONNECT_INTERVAL_US) {
+        return;
+    }
+
+    _lastReconnectAttempt = now;
+    LOGI("mqtt", "attempt to reconnect");
+
+    if (now - _lastEventUs >= STUCK_RESET_US) {
+        resetClient();
+    }
+
+    _client->connect();
 }
 
 void EDMQTT::MQTT::onMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
@@ -78,7 +107,7 @@ bool EDMQTT::MQTT::publish(const char* topic, const char* payload, boolean retai
 
     LOGD("mqtt", "publish message, topic: %s, payload: %s", topic, payload);
 
-    if (_client.publish(topic, 1, retained, payload)) {
+    if (_client->publish(topic, 1, retained, payload)) {
         LOGD("mqtt", "publish successful");
 
         return true;
@@ -95,7 +124,7 @@ void EDMQTT::MQTT::subscribe(Consumer* consumer)
 
     _consumers.push_back(consumer);
 
-    if (_isConfigured && _client.connected()) {
-        _client.subscribe(consumer->getTopicName(), 1);
+    if (_isConfigured && _client->connected()) {
+        _client->subscribe(consumer->getTopicName(), 1);
     }
 }
